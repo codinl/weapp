@@ -35,6 +35,16 @@ type PhoneNumber struct {
 	Watermark       watermark `json:"watermark"`
 }
 
+type StepInfo struct {
+	Timestamp uint32 `json:"timestamp"`
+	Step       uint32 `json:"step"`
+}
+
+// PhoneNumber 解密后的用户步数信息
+type StepInfoList = struct {
+	StepInfoList []StepInfo `json:"stepInfoList"`
+}
+
 // Userinfo 解密后的用户信息
 type Userinfo struct {
 	OpenID    string    `json:"openId"`
@@ -121,6 +131,21 @@ func DecryptPhoneNumber(ssk, data, iv string) (phone PhoneNumber, err error) {
 	}
 
 	err = json.Unmarshal(bts, &phone)
+	return
+}
+
+// DecryptStepInfo 解密手机号码
+//
+// @ssk 通过 Login 向微信服务端请求得到的 session_key
+// @data 小程序通过 api 得到的加密数据(encryptedData)
+// @iv 小程序通过 api 得到的初始向量(iv)
+func DecryptStepInfo(ssk, data, iv string) (stepInfoList StepInfoList, err error) {
+	bts, err := util.CBCDecrypt(ssk, data, iv)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(bts, &stepInfoList)
 	return
 }
 
